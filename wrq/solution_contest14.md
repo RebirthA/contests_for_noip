@@ -78,13 +78,17 @@ for (int i=2;i<=n;++i){
 
 ## C
 ### Problem description
-> 
+> 【数学题】
 
 ### Solution
 > 
 
 ### Code
 ```cpp
+scanf("%lld",&n);
+for (long long i=1;i<=n;i++) a[i]=i*(i+1)*(i+1)-i+1;
+a[1]-=2;
+for (long long i=1;i<=n;++i) printf("%lld\n",a[i]);
 ```
 *****
 
@@ -94,10 +98,79 @@ for (int i=2;i<=n;++i){
 > 给出部分边的长度未知的无向图，输出一个方案使得从点s到t最短路长度为l
 
 ### Solution
-> 
+> 先将所有未知边赋为inf，若此时最短路长度短于l，则不存在合适方案。将未知边赋为1，同理。可证剩余情况必定存在可行方案。
+> 在第二遍将边赋为1的计算过程中可记录下路径，以便后面修改边长度。反复修改和调整，直到满足要求。
 
 ### Code
 ```cpp
+//存边和输出
+void add(int x,int y,LL z){
+	des[++sum]=y, val[sum]=z, nxt[sum]=fst[x], fst[x]=sum, e[sum]=sum+1;
+	if (z==0) val[sum]=inf, b[sum]=1;
+	des[++sum]=x, val[sum]=z, nxt[sum]=fst[y], fst[y]=sum, e[sum]=sum-1;
+	if (z==0) val[sum]=inf, b[sum]=1;
+}
+void pr(){
+	memset(f,0,sizeof f);
+	for (int i=1;i<=sum;++i)
+		if (!f[i]){
+			printf("%d %d %I64d\n",des[e[i]],des[i],val[i]);
+			f[i]=f[e[i]]=1;
+		}
+}
+
+//主要部分
+	for (int i=0;i<n;++i) dis[i]=inf;
+	queue<int>q;
+	q.push(s); dis[s]=0;
+	while (!q.empty()){
+		int x=q.front(); q.pop();
+		for (int i=fst[x];i;i=nxt[i]){
+			int y=des[i];
+			if (dis[x]+val[i]<dis[y]) dis[y]=dis[x]+val[i], q.push(y);
+		}
+	}
+	if (dis[t]<l){
+		printf("NO"); return 0;
+	}
+	if (dis[t]==l){printf("YES\n"); pr(); return 0;}//如果本来就存在合理路径，直接输出
+	for (int i=1;i<=sum;++i) if (b[i]) val[i]=1;
+	for (int i=0;i<n;++i) dis[i]=inf;
+	q.push(s); dis[s]=0;
+	while (!q.empty()){
+		int x=q.front(); q.pop();
+		for (int i=fst[x];i;i=nxt[i]){
+			int y=des[i];
+			if (dis[x]+val[i]<dis[y]){
+				dis[y]=dis[x]+val[i], pre[y]=x, pree[y]=i;
+				q.push(y);
+			}
+		}
+	}
+	if (dis[t]>l){
+		printf("NO"); return 0;
+	}
+	while (dis[t]<l){
+		for (int i=t;i!=s;i=pre[i]){
+			if (b[pree[i]]){
+				val[pree[i]]+=l-dis[t],val[e[pree[i]]]+=l-dis[t];
+				break;
+			}
+		}
+		for (int i=0;i<n;++i) dis[i]=inf;
+		q.push(s); dis[s]=0;
+		while (!q.empty()){
+			int x=q.front(); q.pop();
+			for (int i=fst[x];i;i=nxt[i]){
+				int y=des[i];
+				if (dis[x]+val[i]<dis[y]){
+					dis[y]=dis[x]+val[i], pre[y]=x, pree[y]=i;
+					q.push(y);
+				}
+			}
+		}
+	}
+	printf("YES\n"); pr();
 ```
 *****
 
